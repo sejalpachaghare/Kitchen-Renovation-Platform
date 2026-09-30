@@ -1,0 +1,65 @@
+{
+ "actions": [],
+ "allow_bulk_edit": 1,
+ "creation": "2026-09-22 16:37:12.685785",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "discount_approval_threshold",
+  "crm_section",
+  "crm_webhook_url",
+  "crm_api_key"
+ ],
+ "fields": [
+  {
+   "default": "1000",
+   "fieldname": "discount_approval_threshold",
+   "fieldtype": "Currency",
+   "label": "Discount Approval Threshold"
+  },
+  {
+   "fieldname": "crm_section",
+   "fieldtype": "Section Break",
+   "label": "External CRM Integration"
+  },
+  {
+   "default": "https://httpbin.org",
+   "description": "Mock external CRM endpoint used for this integration demo",
+   "fieldname": "crm_webhook_url",
+   "fieldtype": "Data",
+   "label": "CRM Webhook URL"
+  },
+  {
+   "description": "Stored encrypted - never exposed via API or in logs",
+   "fieldname": "crm_api_key",
+   "fieldtype": "Password",
+   "label": "CRM API Key"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "issingle": 1,
+ "links": [],
+ "modified": "2026-09-22 16:43:08.459198",
+ "modified_by": "Administrator",
+ "module": "Reno Order",
+ "name": "Reno Order Settings",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": []
+}
