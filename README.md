@@ -14,9 +14,22 @@ bench --site your-site install-app reno_order
 bench --site your-site migrate
 ```
 
-`bench migrate` also runs the app's one-time setup patches (roles, workflow,
-permissions - see `reno_order/patches.txt`) and the `007_backfill_order_type`
-data patch.
+The app ships its setup data, so a new site needs no manual setup:
+
+- The custom roles (Site Supervisor, Production User), the Workflow States,
+  the Workflow Actions and the Reno Order workflow are fixtures. They are in
+  `reno_order/fixtures/`. `bench migrate` imports them.
+- The DocType permissions (including the field-level `permlevel` rules) are
+  part of the Reno Order DocType.
+- The two reports are standard reports. They are in `reno_order/report/`.
+  `bench migrate` imports them.
+
+A site administrator must still assign the roles to the real users.
+
+Frappe does not run the app patches (`reno_order/patches.txt`) when you
+install the app on a new site. It marks them as done. The patches are for
+sites that already have the app. For the performance index on a new site,
+see "Database & Performance".
 
 ## Architecture overview
 
@@ -37,7 +50,15 @@ data patch.
   creation.
 - **`on_cancel`** cascades cancellation through Sales Invoice -> Delivery
   Note -> Sales Order in that order, matching ERPNext's own dependency
-  direction.
+  direction. It also sets `status` to `Cancelled`.
+- **Customer details**: when a Reno Order is saved with a new customer, the
+  server fills `customer_address` and `contact_person` with the primary
+  address and contact of that customer. Both fields are read-only. They show
+  only when they have a value. If the customer has no primary address or
+  contact, the order still saves and a banner shows at the top of the form.
+- **Workflow as fixtures**: the Reno Order workflow is built in the UI and
+  exported with `bench export-fixtures`. The `fixtures` list in `hooks.py`
+  controls what is exported.
 - **`reno_order/api.py`** exposes the whitelisted REST endpoints used by the
   Site Supervisor mobile app (`update_installation_status`,
   `add_installation_remarks`). Site photos reuse Frappe's standard
@@ -88,6 +109,11 @@ rejected, row-level permission visibility for a Sales User, and the
 `007_backfill_order_type` patch (fills blanks, leaves real values alone,
 safe to re-run).
 
+Six of these tests create a Sales Order, a Delivery Note or a Sales Invoice.
+They skip themselves on a site that has no Company, because ERPNext needs a
+Company for these documents. A site that finished the setup wizard has a
+Company, so all 10 tests run there.
+
 Manual verification steps for the core flow:
 - Creating a Reno Order and confirming totals recalculate server-side even
   if a client sends a manipulated `grand_total`.
@@ -99,7 +125,14 @@ Manual verification steps for the core flow:
 
 ## Database & Performance
 
-**Report:** Monthly Reno Order Value grouped by Status, last 12 months.
+**Reports:** the app has two standard reports in `reno_order/report/`:
+"Monthly Reno Order Value" (value and order count by month and workflow
+state, last 12 months) and "Overdue Installations". The report is limited to
+the System Manager, Sales Manager and Accounts User roles, because a report
+query does not apply the row-level permission rule.
+
+The query below is the one used for the performance test. It groups by the
+`status` column.
 
 ```sql
 SELECT
@@ -145,6 +178,12 @@ type: range | key: transaction_date_status_index | rows: 11480
 Extra: Using index condition; Using temporary; Using filesort
 ```
 Here the index **is** used - rows scanned drops from ~99k to ~11.5k.
+
+On a new site, Frappe does not run patch 008 during install. Run it once:
+
+```bash
+bench --site your-site execute reno_order.patches.008_add_reno_order_perf_index.execute
+```
 
 **Why this matters:**
 - **Why this index:** `transaction_date` is the WHERE-clause filter column
@@ -199,32 +238,16 @@ Tested the failure path directly by pointing the CRM URL at a broken
 endpoint: 3 attempts with backoff, then `crm_sync_status` correctly becomes
 `Failed` with a matching Error Log entry.
 
-## CI/CD
+## Deployment and Rollback
 
-`.github/workflows/ci.yml` runs on every push/PR to `main`/`develop`:
-Code Push -> spins up MariaDB + Redis service containers -> builds a fresh
-bench and installs Frappe/ERPNext/Reno Order -> creates a test site ->
-`bench run-tests --app reno_order` -> reports pass/fail.
-
-**Known issue - the "Run automated tests" step is currently red.** This is
-an environment/fixture issue, not an application bug: `bench run-tests`
-auto-generates test records by recursively walking every Link field it
-finds (Reno Order -> Customer -> Contact -> Gender, Customer -> Territory,
-etc.), and a headless `bench install-app` in CI does not run the setup
-wizard that normally seeds that master data (Warehouse Type, Gender,
-Salutation, root Customer Group/Territory/Item Group).
-
-**This is a CI-environment gap, not a defect in the tests or the
-application code**: `bench --site <a real, seeded site> run-tests --app
-reno_order` passes all 10 tests locally (verified directly, bypassing only
-the test-record auto-generation step that needs this master data). The
-build/install/site-creation stages of the pipeline all succeed; only the
-auto-generated-test-record step on a from-scratch site is affected.
+This repository has no CI/CD pipeline. The tests run locally with
+`bench run-tests --app reno_order`. The plan below shows how a pipeline
+could deploy the app.
 
 **Extending to Development -> Staging -> Production:**
 - Add environment-scoped jobs that only run on specific branches/tags:
   `develop` push -> auto-deploy to a Development server; a tag like `v*` or
-  merge to a `staging` branch -> deploy to Staging after CI passes; a manual
+  merge to a `staging` branch -> deploy to Staging after the tests pass; a manual
   `workflow_dispatch` approval gate (GitHub Environments with required
   reviewers) -> deploy to Production. Each environment gets its own secrets
   (`STAGING_SSH_KEY`, `PROD_SSH_KEY`, etc.) stored in GitHub Environment
@@ -253,12 +276,14 @@ auto-generated-test-record step on a from-scratch site is affected.
 - Automatic ERPNext document chain (Sales Order -> Delivery Note -> Sales Invoice)
 - REST API for mobile access, with token authentication
 - Third-party integration with retry logic and background job processing
+- Reno Order workflow, roles and states shipped as fixtures
+- Automatic customer address and contact fill, with a warning banner
 - Idempotent data migration patch
 - Database performance tuning with index analysis
 - Row-level and field-level permission enforcement
 - Client-side scripting (dynamic filters, alerts, custom buttons)
-- Automated test suite (10 tests)
-- CI/CD pipeline via GitHub Actions
+- Two standard reports (Monthly Reno Order Value, Overdue Installations)
+- Automated test suite (10 tests, 6 skip on a site without a Company)
 
 ## Known limitations
 
@@ -266,3 +291,10 @@ Test coverage in `test_reno_order.py` is solid on the core business logic
 (calculations, permissions, the Sales Order/Invoice chain, the data patch)
 but is not exhaustive - there is room to add more edge-case tests for the
 mobile API and the CRM integration's retry path specifically.
+
+- There is no CI pipeline in this repository.
+- The `Draft` state has no `Cancel` transition. Frappe does not allow a
+  Draft document to move to a cancelled state.
+- The `Confirm` and `Cancel` workflow transitions use roles that have no
+  `submit` or `cancel` permission on Reno Order. Check these permissions
+  before you use the workflow with non-admin users.
