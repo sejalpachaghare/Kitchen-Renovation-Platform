@@ -7,13 +7,14 @@ REPORT_NAME = "Monthly Reno Order Value"
 
 QUERY = """
     SELECT
-        DATE_FORMAT(transaction_date, '%Y-%m') as 'Month',
-        status as 'Status',
-        SUM(grand_total) as 'Total Value:Currency'
+        DATE_FORMAT(transaction_date, '%Y-%m') AS 'Month:Data:100',
+        workflow_state AS 'Status:Data:180',
+        COUNT(*) AS 'Orders:Int:90',
+        SUM(grand_total) AS 'Total Value:Currency:150'
     FROM `tabReno Order`
     WHERE transaction_date >= DATE_SUB(CURDATE(), INTERVAL 12 MONTH)
-    GROUP BY DATE_FORMAT(transaction_date, '%Y-%m'), status
-    ORDER BY Month DESC, Status
+    GROUP BY DATE_FORMAT(transaction_date, '%Y-%m'), workflow_state
+    ORDER BY `Month:Data:100` DESC, `Status:Data:180`
 """
 
 
