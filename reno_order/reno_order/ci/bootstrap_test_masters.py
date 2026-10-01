@@ -22,7 +22,8 @@ def _create_if_missing(doctype, name, **fields):
 	if frappe.db.exists(doctype, name):
 		return
 	doc = frappe.get_doc({"doctype": doctype, **fields})
-	doc.insert(ignore_permissions=True, ignore_if_duplicate=True)
+	# set_name is needed for doctypes with "Prompt" naming (e.g. Warehouse Type)
+	doc.insert(ignore_permissions=True, ignore_if_duplicate=True, set_name=name)
 
 
 def run():
