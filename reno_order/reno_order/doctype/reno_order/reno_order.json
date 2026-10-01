@@ -39,16 +39,20 @@
    "permlevel": 1
   },
   {
+   "depends_on": "eval:doc.customer_address",
    "fieldname": "customer_address",
    "fieldtype": "Link",
    "label": "Customer Address",
-   "options": "Address"
+   "options": "Address",
+   "read_only": 1
   },
   {
+   "depends_on": "eval:doc.contact_person",
    "fieldname": "contact_person",
    "fieldtype": "Link",
    "label": "Contact Person",
-   "options": "Contact"
+   "options": "Contact",
+   "read_only": 1
   },
   {
    "fieldname": "transaction_date",
@@ -172,7 +176,7 @@
  "index_web_routes_by_route_name": 0,
  "is_submittable": 1,
  "istable": 0,
- "modified": "2026-09-22 10:00:00.000000",
+ "modified": "2026-10-01 09:00:00.000000",
  "modified_by": "Administrator",
  "module": "Reno Order",
  "name": "Reno Order",

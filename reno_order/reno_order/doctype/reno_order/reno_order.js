@@ -6,15 +6,20 @@ frappe.ui.form.on('Reno Order', {
 		// Sales Order / Delivery Note / Sales Invoice are created automatically
 		// as the workflow moves through Confirmed -> Ready for Installation -> Installed
 		add_mark_as_installed_button(frm);
+		show_missing_contact_banner(frm);
 	},
 
-	customer(frm) {
+	setup(frm) {
 		// Dynamic filter: Contact Person / Customer Address options narrow down
 		// to only records linked to the selected customer
+		// (Frappe's own queries are used because link_doctype / link_name live
+		// in a child table, which a plain filter cannot read)
 		frm.set_query('contact_person', () => ({
+			query: 'frappe.contacts.doctype.contact.contact.contact_query',
 			filters: { link_doctype: 'Customer', link_name: frm.doc.customer }
 		}));
 		frm.set_query('customer_address', () => ({
+			query: 'frappe.contacts.doctype.address.address.address_query',
 			filters: { link_doctype: 'Customer', link_name: frm.doc.customer }
 		}));
 	},
@@ -31,6 +36,25 @@ frappe.ui.form.on('Reno Order', {
 		}
 	}
 });
+
+function show_missing_contact_banner(frm) {
+	// Address and contact are filled by the server on save; if the customer has
+	// no primary address or contact, say so at the top of the form
+	if (frm.is_new() || !frm.doc.customer) {
+		return;
+	}
+
+	const missing = [];
+	if (!frm.doc.customer_address) missing.push(__('primary address'));
+	if (!frm.doc.contact_person) missing.push(__('primary contact'));
+
+	if (missing.length) {
+		frm.set_intro(
+			__('Customer {0} has no {1}.', [frm.doc.customer, missing.join(__(' and no '))]),
+			'orange'
+		);
+	}
+}
 
 function add_mark_as_installed_button(frm) {
 	// Only show when the order is actually ready to be installed, and only

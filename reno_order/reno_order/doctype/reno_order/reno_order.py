@@ -92,6 +92,21 @@ class RenoOrder(Document):
         """Called before saving/submitting"""
         self.calculate_totals()
         self.validate_business_rules()
+        self.set_customer_contact_details()
+
+    def set_customer_contact_details(self):
+        """Fill the customer's primary address and contact. The fields are
+        read-only, so this runs for a new order or when the customer changes.
+        A customer without an address or contact is allowed - the fields stay
+        empty and the form shows a warning banner (see reno_order.js)."""
+        if not self.customer or not (self.is_new() or self.has_value_changed("customer")):
+            return
+
+        from frappe.contacts.doctype.address.address import get_default_address
+        from frappe.contacts.doctype.contact.contact import get_default_contact
+
+        self.customer_address = get_default_address("Customer", self.customer)
+        self.contact_person = get_default_contact("Customer", self.customer)
 
     def on_submit(self):
         """Called after document is submitted"""
