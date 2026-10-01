@@ -1,6 +1,8 @@
 # Copyright (c) 2026, Frappe and contributors
 # For license information, please see license.txt
 
+import functools
+
 import frappe
 from frappe.tests.utils import FrappeTestCase
 from frappe.model.workflow import apply_workflow
@@ -84,6 +86,20 @@ def confirm_order(doc):
 	return apply_workflow(doc, "Confirm")
 
 
+def requires_company(test_func):
+	"""Skip tests that create ERPNext documents (Sales Order, Delivery Note,
+	Sales Invoice) on a site that has no Company. A fresh CI site has none,
+	because the setup wizard never runs there; a real site always has one."""
+
+	@functools.wraps(test_func)
+	def wrapper(self, *args, **kwargs):
+		if not frappe.db.exists("Company"):
+			self.skipTest("No Company on this site (setup wizard has not run)")
+		return test_func(self, *args, **kwargs)
+
+	return wrapper
+
+
 class TestRenoOrder(FrappeTestCase):
 	def test_total_calculation(self):
 		"""Line amount, total, discount and grand total are calculated
@@ -126,6 +142,7 @@ class TestRenoOrder(FrappeTestCase):
 		self.assertEqual(doc.docstatus, 1)
 		self.assertTrue(doc.discount_amount > 0)
 
+	@requires_company
 	def test_sales_order_creation(self):
 		"""create_sales_order links a real, submitted Sales Order back to
 		the Reno Order with matching items."""
@@ -137,6 +154,7 @@ class TestRenoOrder(FrappeTestCase):
 		self.assertEqual(so.docstatus, 1)
 		self.assertEqual(so.customer, doc.customer)
 
+	@requires_company
 	def test_duplicate_sales_order_prevented(self):
 		"""Calling create_sales_order a second time for the same Reno
 		Order must fail, not create a second Sales Order."""
@@ -146,6 +164,7 @@ class TestRenoOrder(FrappeTestCase):
 
 		self.assertRaises(frappe.ValidationError, doc.create_sales_order)
 
+	@requires_company
 	def test_installed_status_creates_sales_invoice_once(self):
 		"""Walking the full workflow to Installed creates exactly one
 		Sales Invoice, and calling the chain again does not duplicate it."""
@@ -170,6 +189,7 @@ class TestRenoOrder(FrappeTestCase):
 		)
 		self.assertEqual(si_count_before, si_count_after)
 
+	@requires_company
 	def test_unauthorized_api_request(self):
 		"""A user with no write permission on the Reno Order must be
 		rejected by the mobile API, not silently allowed through."""
@@ -199,6 +219,7 @@ class TestRenoOrder(FrappeTestCase):
 		finally:
 			frappe.set_user(current_user)
 
+	@requires_company
 	def test_permission_query_conditions_restrict_sales_user(self):
 		"""A Sales User only sees Reno Orders they own or are assigned to
 		as sales_person - verified directly against the permission hook,
@@ -239,6 +260,7 @@ class TestRenoOrder(FrappeTestCase):
 		self.assertTrue(visible)
 		self.assertFalse(not_visible)
 
+	@requires_company
 	def test_patch_backfills_only_blank_order_type(self):
 		"""007_backfill_order_type fills blanks with 'Standard', leaves an
 		existing value untouched, and is safe to run twice. Imported via
