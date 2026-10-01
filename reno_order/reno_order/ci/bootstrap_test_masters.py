@@ -49,6 +49,10 @@ def run():
 		item_group_name="All Item Groups", is_group=1,
 	)
 	_create_if_missing(
+		"Sales Person", "Sales Team",
+		sales_person_name="Sales Team", is_group=1,
+	)
+	_create_if_missing(
 		"Supplier Group", "All Supplier Groups",
 		supplier_group_name="All Supplier Groups", is_group=1,
 	)
