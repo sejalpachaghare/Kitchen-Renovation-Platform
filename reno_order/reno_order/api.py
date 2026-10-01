@@ -60,3 +60,4 @@ def add_installation_remarks(reno_order: str, remarks: str):
 
     doc.add_comment("Comment", remarks.strip())
     return {"reno_order": reno_order, "remarks": remarks.strip()}
+
