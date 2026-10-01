@@ -135,6 +135,10 @@ class RenoOrder(Document):
             if so.docstatus == 1:
                 so.cancel()
 
+        # status is only synced on save, which a cancel does not go through, so
+        # without this it would keep showing the old state (e.g. "Closed")
+        self.db_set("status", "Cancelled", update_modified=False)
+
         frappe.msgprint("✅ Linked Sales Order, Delivery Note & Sales Invoice cancelled")
 
     def on_update(self):
