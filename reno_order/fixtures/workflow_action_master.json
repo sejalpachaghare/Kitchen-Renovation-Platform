@@ -1,0 +1,44 @@
+[
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "modified": "2026-10-01 10:42:49.079920",
+  "name": "Confirm",
+  "workflow_action_name": "Confirm"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "modified": "2026-10-01 10:43:13.050974",
+  "name": "Mark Ready",
+  "workflow_action_name": "Mark Ready"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "modified": "2026-10-01 10:43:22.888396",
+  "name": "Install",
+  "workflow_action_name": "Install"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "modified": "2026-10-01 10:43:33.419473",
+  "name": "Close Order",
+  "workflow_action_name": "Close Order"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "modified": "2026-10-01 10:43:42.107741",
+  "name": "Cancel",
+  "workflow_action_name": "Cancel"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Workflow Action Master",
+  "modified": "2026-10-01 10:43:03.963273",
+  "name": "Start Production",
+  "workflow_action_name": "Start Production"
+ }
+]

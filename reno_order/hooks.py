@@ -194,6 +194,44 @@ scheduler_events = {
 	]
 }
 
+# Fixtures
+# --------
+# Workflow is built in the UI and exported with:
+#   bench --site <site> export-fixtures --app reno_order
+
+fixtures = [
+	{"dt": "Role", "filters": [["name", "in", ["Site Supervisor", "Production User"]]]},
+	{
+		"dt": "Workflow State",
+		"filters": [
+			[
+				"name",
+				"in",
+				[
+					"Draft",
+					"Confirmed",
+					"In Production",
+					"Ready for Installation",
+					"Installed",
+					"Closed",
+					"Cancelled",
+				],
+			]
+		],
+	},
+	{
+		"dt": "Workflow Action Master",
+		"filters": [
+			[
+				"name",
+				"in",
+				["Confirm", "Start Production", "Mark Ready", "Install", "Close Order", "Cancel"],
+			]
+		],
+	},
+	{"dt": "Workflow", "filters": [["name", "=", "Reno Order"]]},
+]
+
 # Testing
 # -------
 
