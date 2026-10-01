@@ -6,6 +6,24 @@ from frappe.tests.utils import FrappeTestCase
 from frappe.model.workflow import apply_workflow
 from frappe.utils import add_days, today
 
+# These tests build their own data (see the get_test_* helpers below). Without
+# this, Frappe walks every Link field of Reno Order and tries to generate test
+# records for each linked doctype, which needs master data that only the setup
+# wizard creates (and so fails on a fresh CI site).
+test_ignore = [
+	"Address",
+	"Contact",
+	"Customer",
+	"Delivery Note",
+	"Item",
+	"Project",
+	"Sales Invoice",
+	"Sales Order",
+	"UOM",
+	"User",
+	"Warehouse",
+]
+
 
 def get_test_customer():
 	customer = frappe.db.get_value("Customer", {}, "name")

@@ -1,19 +1,14 @@
 # Copyright (c) 2026, Sejal Pachaghare and Contributors
 # See license.txt
 
-# import frappe
-from frappe.tests import IntegrationTestCase
+# IntegrationTestCase exists only in newer Frappe; v15 (used in CI) has FrappeTestCase
+try:
+	from frappe.tests import IntegrationTestCase as BaseTestCase
+except ImportError:
+	from frappe.tests.utils import FrappeTestCase as BaseTestCase
 
 
-# On IntegrationTestCase, the doctype test records and all
-# link-field test record dependencies are recursively loaded
-# Use these module variables to add/remove to/from that list
-EXTRA_TEST_RECORD_DEPENDENCIES = []  # eg. ["User"]
-IGNORE_TEST_RECORD_DEPENDENCIES = []  # eg. ["User"]
-
-
-
-class IntegrationTestRenoOrderSettings(IntegrationTestCase):
+class IntegrationTestRenoOrderSettings(BaseTestCase):
 	"""
 	Integration tests for RenoOrderSettings.
 	Use this class for testing interactions between multiple components.
