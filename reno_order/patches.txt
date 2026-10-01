@@ -12,7 +12,4 @@ reno_order.patches.009_create_monthly_value_report
 # Patches added in this section will be executed after fixtures and customizations
 # (Custom Field, Property Setter, etc) are synced
 reno_order.patches.001_create_roles
-reno_order.patches.002_create_reno_order_workflow
 reno_order.patches.003_set_reno_order_permissions
-reno_order.patches.004_add_workflow_states_transitions
-reno_order.patches.010_ensure_reno_order_workflow
