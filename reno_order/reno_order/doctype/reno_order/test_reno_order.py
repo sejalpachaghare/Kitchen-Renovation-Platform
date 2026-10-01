@@ -31,9 +31,12 @@ def get_test_customer():
 	customer = frappe.db.get_value("Customer", {}, "name")
 	if customer:
 		return customer
-	return frappe.get_doc({"doctype": "Customer", "customer_name": "Reno Test Customer"}).insert(
-		ignore_permissions=True
-	).name
+	return frappe.get_doc({
+		"doctype": "Customer",
+		"customer_name": "Reno Test Customer",
+		"customer_group": "All Customer Groups",
+		"territory": "All Territories",
+	}).insert(ignore_permissions=True).name
 
 
 def get_test_item():
